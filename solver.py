@@ -6,9 +6,9 @@ correct_pos_map = {str_sort(p.orientation): p.pos for p in c.pieces}
 correct_orientation_map = {str_sort(p.orientation): p.orientation for p in c.pieces}
 
 def solve_cube(internal_cube: Cube) -> list[str]:
-    return solve_cross(internal_cube) + solve_first_layer(internal_cube)
+    return solve_white_cross(internal_cube) + solve_first_layer(internal_cube) + solve_second_layer(internal_cube)
 
-def solve_cross(internal_cube: Cube) -> list[str]:
+def solve_white_cross(internal_cube: Cube) -> list[str]:
     move_list = []
 
     while True:
@@ -146,8 +146,68 @@ def solve_first_layer(internal_cube: Cube) -> list[str]:
 
     return move_list
 
+def solve_second_layer(internal_cube: Cube) -> list[str]:
+    move_list = []
+
+    while True:
+        target_edges = [piece for piece in internal_cube.pieces if (piece.pos[2] == 0 or piece.pos[2] == -1) and piece.type == "e" and "y" not in piece.orientation and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
+        target_edges.sort(key=lambda piece: str_sort(piece.orientation))
+        if len(target_edges) == 0:
+            break
+        piece = target_edges[0]
+
+        if piece.pos[2] == -1:
+            # get the color that is not facing down
+            other_color = [color for i, color in enumerate(piece.orientation) if color != "0" and i != 5][0]
+            # twist the bottom layer until the center piece with the other color is directly below the edge piece
+            while other_color not in internal_cube.get_piece((piece.pos[0], piece.pos[1], 0)).orientation:
+                move_list.append("D")
+                internal_cube.move("D")
+            
+            # get the current center piece
+            current_center_piece = internal_cube.get_piece((piece.pos[0], piece.pos[1], 0))
+            current_color = [color for color in current_center_piece.orientation if color != "0"][0]
+
+            # get the center piece on both the faces left and right of the current face
+            first_center_piece = internal_cube.get_piece((*rotate_ccw(piece.pos[:2]), 0))
+            second_center_piece = internal_cube.get_piece((*rotate_cw(piece.pos[:2]), 0))
+            first_color = [color for color in first_center_piece.orientation if color != "0"][0]
+            second_color = [color for color in second_center_piece.orientation if color != "0"][0]
+
+            converted_algorithm = None
+            if piece.orientation[5] == first_color:
+                if is_right_of(first_center_piece, current_center_piece):
+                    converted_algorithm = convert_algorithm("U' L' U L U F U' F'", current_color, "y")
+                else:
+                    converted_algorithm = convert_algorithm("U R U' R' U' F' U F", current_color, "y")
+            elif piece.orientation[5] == second_color:
+                if is_right_of(second_center_piece, current_center_piece):
+                    converted_algorithm = convert_algorithm("U' L' U L U F U' F'", current_color, "y")
+                else:
+                    converted_algorithm = convert_algorithm("U R U' R' U' F' U F", current_color, "y")
+            for move in converted_algorithm:
+                internal_cube.move(move)
+            move_list.extend(converted_algorithm)
+        else:
+            first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
+            second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
+            first_color = [color for color in first_center_piece.orientation if color != "0"][0]
+            second_color = [color for color in second_center_piece.orientation if color != "0"][0]
+            if is_right_of(first_center_piece, second_center_piece):
+                converted_algorithm = convert_algorithm("U R U' R' U' F' U F", first_color, "y")
+            else:
+                converted_algorithm = convert_algorithm("U' L' U L U F U' F'", first_color, "y")
+            for move in converted_algorithm:
+                internal_cube.move(move)
+            move_list.extend(converted_algorithm)
+
+    return move_list
+
 def rotate_ccw(vec: tuple[int, int]) -> tuple[int, int]:
     return (-vec[1], vec[0])
+
+def rotate_cw(vec: tuple[int, int]) -> tuple[int, int]:
+    return (vec[1], -vec[0])
 
 def is_right_of(piece1: Piece, piece2: Piece) -> bool:
     # is piece1 to the right of piece2 (counter-clockwise)
@@ -244,8 +304,6 @@ if __name__ == "__main__":
     c = Cube(3)
     c.scramble() 
 
-    moves = solve_first_layer(c)
-    for move in moves:
-        print(move, end=" ")
+    moves = solve_cube(c)
     # red center should be right of green center
     print(is_right_of(c.get_piece((0,-1,0)), c.get_piece((-1,0,0))))
