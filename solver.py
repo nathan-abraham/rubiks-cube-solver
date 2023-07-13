@@ -6,7 +6,7 @@ correct_pos_map = {str_sort(p.orientation): p.pos for p in c.pieces}
 correct_orientation_map = {str_sort(p.orientation): p.orientation for p in c.pieces}
 
 def solve_cube(internal_cube: Cube) -> list[str]:
-    return solve_white_cross(internal_cube) + solve_first_layer(internal_cube) + solve_second_layer(internal_cube)
+    return solve_white_cross(internal_cube) + solve_first_layer(internal_cube) + solve_second_layer(internal_cube) + solve_yellow_cross(internal_cube) + solve_yellow_edges(internal_cube)
 
 def solve_white_cross(internal_cube: Cube) -> list[str]:
     move_list = []
@@ -200,6 +200,53 @@ def solve_second_layer(internal_cube: Cube) -> list[str]:
             for move in converted_algorithm:
                 internal_cube.move(move)
             move_list.extend(converted_algorithm)
+
+    return move_list
+
+def solve_yellow_cross(internal_cube: Cube) -> list[str]:
+    move_list = []
+    algorithm = None
+    
+    # get all yellow edges
+    top_edge = internal_cube.get_piece((0, 1, -1))
+    right_edge = internal_cube.get_piece((-1, 0, -1))
+    bottom_edge = internal_cube.get_piece((0, -1, -1))
+    left_edge = internal_cube.get_piece((1, 0, -1))
+    # get number of yellow edges facing down
+    num_facing_down = sum([1 for edge in [top_edge, right_edge, bottom_edge, left_edge] if edge.orientation[5] == "y"])
+
+    # yellow dot on top
+    if num_facing_down == 0:
+        print("dot")
+        algorithm = "F R U R' U' R U R' U' F' U' F R U R' U' F'"
+    # yellow line or L on top
+    elif num_facing_down == 2:
+        print("line or L")
+        # line cases
+        if top_edge.orientation[5] == "y" and bottom_edge.orientation[5] == "y":
+            algorithm = "F F R U R' U' F'"
+        elif left_edge.orientation[5] == "y" and right_edge.orientation[5] == "y":
+            algorithm = "F R U R' U' F'"
+        # L cases
+        elif top_edge.orientation[5] == "y" and left_edge.orientation[5] == "y":
+            algorithm = "F R U R' U' R U R' U' F'"
+        elif top_edge.orientation[5] == "y" and right_edge.orientation[5] == "y":
+            algorithm = "U' F R U R' U' R U R' U' F'"
+        elif bottom_edge.orientation[5] == "y" and right_edge.orientation[5] == "y":
+            algorithm = "U U F F R U R' U' F'"
+        elif bottom_edge.orientation[5] == "y" and left_edge.orientation[5] == "y":
+            algorithm = "U F R U R' U' R U R' U' F'"
+
+    if algorithm:
+        converted_algorithm = convert_algorithm(algorithm, "r", "y")
+        for move in converted_algorithm:
+            internal_cube.move(move)
+        move_list.extend(converted_algorithm)
+
+    return move_list
+
+def solve_yellow_edges(internal_cube: Cube) -> list[str]:
+    move_list = []
 
     return move_list
 
