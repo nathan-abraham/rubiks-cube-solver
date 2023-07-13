@@ -142,30 +142,3 @@ def generate_rotation_matrix(move_type: str):
 
 def str_sort(s: str) -> str:
     return "".join(sorted(s))
-
-# create a map of a piece's orientation to its correct position
-# the key is the piece's orientation, and the value is the piece's correct position
-
-correct_pos_map = {
-    str_sort("w00og0"): (-1, 1, 1),
-    str_sort("w00o00"): (0, 1, 1),
-    str_sort("w00ob0"): (1, 1, 1),
-    str_sort("w000g0"): (-1, 0, 1),
-    str_sort("w00000"): (0, 0, 1),
-    str_sort("w0b000"): (1, 0, 1),
-    str_sort("wr00g0"): (-1, -1, 1),
-    str_sort("wr0000"): (0, -1, 1),
-    str_sort("wrb000"): (1, -1, 1),
-}
-
-correct_orientation_map = {
-    str_sort("w00og0"): "w00og0",
-    str_sort("w00o00"): "w00o00",
-    str_sort("w00ob0"): "w00ob0",
-    str_sort("w000g0"): "w000g0",
-    str_sort("w00000"): "w00000",
-    str_sort("w0b000"): "w0b000",
-    str_sort("wr00g0"): "wr00g0",
-    str_sort("wr0000"): "wr0000",
-    str_sort("wrb000"): "wrb000",
-}

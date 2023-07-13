@@ -1,8 +1,12 @@
 from cube import Cube, Piece
-from data import correct_pos_map, correct_orientation_map, str_sort
+from data import str_sort
+
+c = Cube(3)
+correct_pos_map = {str_sort(p.orientation): p.pos for p in c.pieces}
+correct_orientation_map = {str_sort(p.orientation): p.orientation for p in c.pieces}
 
 def solve_cube(internal_cube: Cube) -> list[str]:
-    return solve_first_layer(internal_cube)
+    return solve_cross(internal_cube) + solve_first_layer(internal_cube)
 
 def solve_cross(internal_cube: Cube) -> list[str]:
     move_list = []
@@ -103,36 +107,15 @@ def solve_cross(internal_cube: Cube) -> list[str]:
 def solve_first_layer(internal_cube: Cube) -> list[str]:
     move_list = []
 
-    unsolved_white_corners = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "c" and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
-        # if len(unsolved_white_corners) == 0:
-        #     break
-    for piece in unsolved_white_corners:
-        # piece = unsolved_white_corners[0]
+    while True:
+        unsolved_white_corners = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "c" and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
+        unsolved_white_corners.sort(key=lambda piece: str_sort(piece.orientation))
+        if len(unsolved_white_corners) == 0:
+            break
+        piece = unsolved_white_corners[0]
         if piece.pos[2] == -1:
             if piece.orientation[5] != "w":
                 # twist the bottom layer until the white piece is directly below where it needs to go on the top layer
-                # correct_pos = correct_pos_map[str_sort(piece.orientation)]
-                # while piece.pos[0] != correct_pos[0] or piece.pos[1] != correct_pos[1]:
-                #     move_list.append("D")
-                #     internal_cube.move("D")
-                # other_color = [color for i, color in enumerate(piece.orientation) if color != "w" and color != "0" and i != 5][0]
-
-                # converted_algorithm = convert_algorithm("R' D' R", other_color, "w")
-                # for move in converted_algorithm:
-                #     internal_cube.move(move)
-                # if piece.pos == correct_pos_map[str_sort(piece.orientation)]:
-                #     move_list.extend(converted_algorithm)
-                # else:
-                #     # undo the algorithm
-                #     for move in converted_algorithm[::-1]:
-                #         inverse_move = move + "'" if "'" not in move else move[0]
-                #         internal_cube.move(inverse_move)
-                #     # do the left algorithm
-                #     converted_algorithm = convert_algorithm("L D L'", other_color, "w")
-                #     for move in converted_algorithm:
-                #         internal_cube.move(move)
-                #     move_list.extend(converted_algorithm)
-
                 correct_pos = correct_pos_map[str_sort(piece.orientation)]
                 while piece.pos[0] != correct_pos[0] or piece.pos[1] != correct_pos[1]:
                     move_list.append("D")
@@ -158,29 +141,44 @@ def solve_first_layer(internal_cube: Cube) -> list[str]:
                 for move in converted_algorithm:
                     internal_cube.move(move)
                 move_list.extend(converted_algorithm)
-                break
             else:
                 # twist the bottom layer until the white piece is directly below where it needs to go on the top layer
-                # correct_pos = correct_pos_map[str_sort(piece.orientation)]
-                # while piece.pos[0] != correct_pos[0] or piece.pos[1] != correct_pos[1]:
-                #     move_list.append("D")
-                #     internal_cube.move("D")
+                correct_pos = correct_pos_map[str_sort(piece.orientation)]
+                while piece.pos[0] != correct_pos[0] or piece.pos[1] != correct_pos[1]:
+                    move_list.append("D")
+                    internal_cube.move("D")
 
-                # first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
-                # second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
+                first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
+                second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
 
-                # first_outward_dir = [i for i in range(6) if first_center_piece.orientation[i] != "0"][0]
-                # second_outward_dir = [i for i in range(6) if second_center_piece.orientation[i] != "0"][0]
-                # first_color = first_center_piece.orientation[first_outward_dir]
-                # second_color = second_center_piece.orientation[second_outward_dir]
-                # if piece.orientation[first_outward_dir] == first_color:
-                #     converted_algorithm = convert_algorithm("L D L'", first_color, "w")
-                # else:
-                #     converted_algorithm = convert_algorithm("R' D' R", second_color, "w")
-                # for move in converted_algorithm:
-                #     internal_cube.move(move)
-                # move_list.extend(converted_algorithm)
-                pass
+                first_outward_dir = [i for i in range(6) if first_center_piece.orientation[i] != "0"][0]
+                second_outward_dir = [i for i in range(6) if second_center_piece.orientation[i] != "0"][0]
+                first_color = first_center_piece.orientation[first_outward_dir]
+                second_color = second_center_piece.orientation[second_outward_dir]
+
+                if is_right_of(first_center_piece, second_center_piece):
+                    converted_algorithm = convert_algorithm("R' D R", second_color, "w")
+                else:
+                    converted_algorithm = convert_algorithm("R' D R", first_color, "w")
+                for move in converted_algorithm:
+                    internal_cube.move(move)
+                move_list.extend(converted_algorithm)
+        else:
+            first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
+            second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
+
+            first_outward_dir = [i for i in range(6) if first_center_piece.orientation[i] != "0"][0]
+            second_outward_dir = [i for i in range(6) if second_center_piece.orientation[i] != "0"][0]
+            first_color = first_center_piece.orientation[first_outward_dir]
+            second_color = second_center_piece.orientation[second_outward_dir]
+
+            if is_right_of(first_center_piece, second_center_piece):
+                converted_algorithm = convert_algorithm("R' D R", second_color, "w")
+            else:
+                converted_algorithm = convert_algorithm("R' D R", first_color, "w")
+            for move in converted_algorithm:
+                internal_cube.move(move)
+            move_list.extend(converted_algorithm)
 
     return move_list
 
@@ -195,8 +193,6 @@ def is_right_of(piece1: Piece, piece2: Piece) -> bool:
 
 def convert_algorithm(algorithm: str, front_face_color: str, top_face_color: str) -> list[str]:
     move_map = None
-    print("front face color:", front_face_color)
-    print("top face color:", top_face_color)
 
     # if red is front and white is top, then the algorithm is already in the correct orientation
     if front_face_color == "r" and top_face_color == "w":
@@ -282,10 +278,10 @@ def fill_move_map(move_map: dict[str, str]) -> dict[str, str]:
 
 if __name__ == "__main__":
     c = Cube(3)
-    # c.scramble() 
+    c.scramble() 
 
-    # moves = solve_first_layer(c)
-    # for move in moves:
-    #     print(move, end=" ")
+    moves = solve_first_layer(c)
+    for move in moves:
+        print(move, end=" ")
     # red center should be right of green center
     print(is_right_of(c.get_piece((0,-1,0)), c.get_piece((-1,0,0))))
