@@ -13,6 +13,7 @@ def solve_cross(internal_cube: Cube) -> list[str]:
 
     while True:
         unsolved_white_edges = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "e" and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
+        unsolved_white_edges.sort(key=lambda piece: str_sort(piece.orientation))
         if len(unsolved_white_edges) == 0:
             break
 
@@ -50,27 +51,9 @@ def solve_cross(internal_cube: Cube) -> list[str]:
             move_list.extend(algorithm.split(" "))
             for move in algorithm.split(" "):
                 internal_cube.move(move)
-
-            # twist the bottom layer until the white piece is directly below where it needs to go on the top layer
-            other_color = [color for color in piece.orientation if color != "w" and color != "0"][0]
-            while other_color not in internal_cube.get_piece((piece.pos[0], piece.pos[1], 0)).orientation:
-                move_list.append("D")
-                internal_cube.move("D")
-
-            # move it to the top layer
-            front_center_piece = internal_cube.get_piece((piece.pos[0], piece.pos[1], 0))
-            front_face_color = [color for color in front_center_piece.orientation if color != "0"][0]
-
-            # if white is on the bottom of the piece
-            if piece.orientation[5] == "w":
-                converted_algorithm = convert_algorithm("F F", front_face_color, "w")
-            else:
-                converted_algorithm = convert_algorithm("D R F' R'", front_face_color, "w")
-            move_list.extend(converted_algorithm)
-            for move in converted_algorithm:
-                internal_cube.move(move)
             
         elif piece.pos[2] == 1:
+            # move it to the bottom layer
             if piece.pos[0] == 1 and piece.pos[1] == 0:
                 algorithm = "R R"
             elif piece.pos[0] == 0 and piece.pos[1] == -1:
@@ -83,25 +66,6 @@ def solve_cross(internal_cube: Cube) -> list[str]:
             for move in algorithm.split(" "):
                 internal_cube.move(move)
             
-            # twist the bottom layer until the white piece is directly below where it needs to go on the top layer
-            other_color = [color for color in piece.orientation if color != "w" and color != "0"][0]
-            while other_color not in internal_cube.get_piece((piece.pos[0], piece.pos[1], 0)).orientation:
-                move_list.append("D")
-                internal_cube.move("D")
-
-            # move it to the top layer
-            front_center_piece = internal_cube.get_piece((piece.pos[0], piece.pos[1], 0))
-            front_face_color = [color for color in front_center_piece.orientation if color != "0"][0]
-
-            # if white is on the bottom of the piece
-            if piece.orientation[5] == "w":
-                converted_algorithm = convert_algorithm("F F", front_face_color, "w")
-            else:
-                converted_algorithm = convert_algorithm("D R F' R'", front_face_color, "w")
-            move_list.extend(converted_algorithm)
-            for move in converted_algorithm:
-                internal_cube.move(move)
-
     return move_list
 
 def solve_first_layer(internal_cube: Cube) -> list[str]:
