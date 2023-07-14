@@ -177,7 +177,6 @@ class Simulation(Ursina):
         self.reset_rotation_helper()
 
     def perform_move(self, move: str, move_speed: int, change_internal_cube: bool = True):
-        # print("move:", move)
         if move[-1] == "'":
             self.rotate_side(self.faces_to_normal[move[:-1]], -1, speed=move_speed)
         else:
