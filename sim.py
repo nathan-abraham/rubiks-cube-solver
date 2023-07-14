@@ -35,13 +35,13 @@ class Simulation(Ursina):
 
         self.generate_cube()
 
-        self.solve_cross_button = Button(text='solve cross', color=color.azure, position=(.7,-.1), on_click=self.solve_cross)
-        self.solve_cross_button.fit_to_text()
-
-        self.randomize_button = Button(text='randomize', color=color.azure, position=(.7,-.2), on_click=self.randomize)
+        self.randomize_button = Button(text='randomize', color=color.azure, position=(.7,-.1), on_click=self.randomize)
         self.randomize_button.fit_to_text()
 
-        self.solve_button = Button(text='solve', color=color.azure, position=(.7,-.3), on_click=self.solve)
+        self.solve_beginners_button = Button(text='solve (beginner\'s)', color=color.azure, position=(.7,-.2), on_click=self.solve_beginners)
+        self.solve_beginners_button.fit_to_text()
+
+        self.solve_button = Button(text='solve (kociemba)', color=color.azure, position=(.7,-.3), on_click=self.solve)
         self.solve_button.fit_to_text()
 
         self.reset_button = Button(text='reset', color=color.azure, position=(.7,-.4), on_click=self.reset)
@@ -130,7 +130,6 @@ class Simulation(Ursina):
         if speed:
             self.controller.ignore_input = True
             invoke(setattr, self.controller, 'ignore_input', False, delay=.24*speed)
-            invoke(self.check_for_win, delay=.25*speed)
 
     def reset_rotation_helper(self):
         [setattr(e, 'world_parent', scene) for e in self.cubes]
@@ -146,7 +145,7 @@ class Simulation(Ursina):
             self.win_text_entity.text = ''
 
     def randomize(self):
-        for _ in range(20):
+        for _ in range(40):
             face = random.choice(self.faces)
             dir = random.choice((-1,1))
             self.rotate_side(normal=self.faces_to_normal[face], direction=dir, speed=0)
@@ -181,6 +180,7 @@ class Simulation(Ursina):
 
     def perform_moves(self, move_list: list[str], index: int, move_speed: int, change_internal_cube: bool = True):
         if index >= len(move_list):
+            invoke(self.check_for_win, delay=.25*move_speed)
             return
 
         move = move_list[index]
@@ -200,9 +200,9 @@ class Simulation(Ursina):
             else:
                 move_list.append(move)
 
-        self.perform_moves(move_list, 0, 0.6)
+        self.perform_moves(move_list, 0, 0, change_internal_cube=True)
 
-    def solve_cross(self):
+    def solve_beginners(self):
         moves = solve_cube(self.internal_cube)
         # break up moves with a 2 at the end into two moves
         move_list = []
