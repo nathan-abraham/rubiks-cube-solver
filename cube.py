@@ -151,8 +151,8 @@ class Cube:
                 string_notation += color_map[color]
         return string_notation
 
-    def scramble(self):
-        for _ in range(20):
+    def scramble(self, num_moves: int = 40):
+        for _ in range(num_moves):
             move_type = choice(["R", "L", "U", "D", "F", "B"])
             direction = choice(["", "'"])
             self.move(move_type + direction)
