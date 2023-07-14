@@ -1,3 +1,4 @@
+import kociemba
 from ursina import *
 from cube import Cube
 from solver import solve_cube
@@ -35,16 +36,22 @@ class Simulation(Ursina):
 
         self.generate_cube()
 
-        self.randomize_button = Button(text='randomize', color=color.azure, position=(.7,-.1), on_click=self.randomize)
+        self.print_cube_button = Button(text='print cube', color=color.azure, position=(.7, .1), on_click=self.internal_cube.print_cube)
+        self.print_cube_button.fit_to_text()
+
+        self.check_solved_button = Button(text='check solved', color=color.azure, position=(.7, 0), on_click=self.check_for_win)
+        self.check_solved_button.fit_to_text()
+
+        self.randomize_button = Button(text='randomize', color=color.azure, position=(.7, -.1), on_click=self.randomize)
         self.randomize_button.fit_to_text()
 
-        self.solve_beginners_button = Button(text='solve (beginner\'s)', color=color.azure, position=(.7,-.2), on_click=self.solve_beginners)
+        self.solve_beginners_button = Button(text='solve (beginner\'s)', color=color.azure, position=(.7, -.2), on_click=self.solve_beginners)
         self.solve_beginners_button.fit_to_text()
 
-        self.solve_button = Button(text='solve (kociemba)', color=color.azure, position=(.7,-.3), on_click=self.solve)
+        self.solve_button = Button(text='solve (kociemba)', color=color.azure, position=(.7, -.3), on_click=self.solve_kociemba)
         self.solve_button.fit_to_text()
 
-        self.reset_button = Button(text='reset', color=color.azure, position=(.7,-.4), on_click=self.reset)
+        self.reset_button = Button(text='reset', color=color.azure, position=(.7, -.4), on_click=self.reset)
         self.reset_button.fit_to_text()
 
         window.color = color._16
@@ -147,7 +154,7 @@ class Simulation(Ursina):
     def randomize(self):
         for _ in range(40):
             face = random.choice(self.faces)
-            dir = random.choice((-1,1))
+            dir = random.choice((-1, 1))
             self.rotate_side(normal=self.faces_to_normal[face], direction=dir, speed=0)
             self.internal_cube.move(face + ("'" if dir == -1 else ""))
 
@@ -188,8 +195,7 @@ class Simulation(Ursina):
 
         invoke(self.perform_moves, move_list, index+1, move_speed, change_internal_cube=False, delay=.5*move_speed)
 
-    def solve(self):
-        import kociemba
+    def solve_kociemba(self):
         moves = kociemba.solve(self.internal_cube.to_string_notation()).split(" ")
         # break up moves with a 2 at the end into two moves
         move_list = []
@@ -200,7 +206,10 @@ class Simulation(Ursina):
             else:
                 move_list.append(move)
 
-        self.perform_moves(move_list, 0, 0, change_internal_cube=True)
+        for move in move_list:
+            self.internal_cube.move(move)
+
+        self.perform_moves(move_list, 0, 0, change_internal_cube=False)
 
     def solve_beginners(self):
         moves = solve_cube(self.internal_cube)
