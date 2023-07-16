@@ -208,7 +208,7 @@ class Simulation(Ursina):
         for move in move_list:
             self.internal_cube.move(move)
 
-        self.perform_moves(move_list, 0, 0, change_internal_cube=False)
+        self.perform_moves(move_list, 0, 0.6, change_internal_cube=False)
 
     def solve_beginners(self):
         moves = solve_cube(self.internal_cube)
@@ -221,7 +221,7 @@ class Simulation(Ursina):
             else:
                 move_list.append(move)
 
-        self.perform_moves(move_list, 0, 0, change_internal_cube=False)
+        self.perform_moves(move_list, 0, 0.6, change_internal_cube=False)
 
 if __name__ == "__main__":
     app = Simulation()
