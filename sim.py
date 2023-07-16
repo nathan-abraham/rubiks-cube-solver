@@ -25,6 +25,9 @@ class Simulation(Ursina):
         "F": Vec3(0, 0, -1),
         "B": Vec3(0, 0, 1),
     }
+    stages = ["White Cross", "White Corners", "Middle Layer",
+              "Yellow Cross", "Yellow Edges", "Yellow Corner Position",
+              "Yellow Corner Orientation"]
 
     def __init__(self):
         super().__init__()
@@ -63,6 +66,9 @@ class Simulation(Ursina):
         self.reset_button = Button(
             text='reset', color=color.azure, position=(.7, -.4), on_click=self.reset_cube)
         self.reset_button.fit_to_text()
+
+        self.markers = None
+        self.stage_idx = 0
 
         window.color = color._16
         EditorCamera()
@@ -248,6 +254,12 @@ class Simulation(Ursina):
         self.perform_move(move, move_speed,
                           change_internal_cube=change_internal_cube)
 
+        for i in range(len(self.markers)):
+            if self.markers[i] == index:
+                self.stage_idx += 1
+                self.win_text_entity.text = "Stage: " + self.stages[self.stage_idx]
+                break
+
         invoke(self.perform_moves, move_list, index+1, move_speed,
                change_internal_cube=False, delay=.5*move_speed)
 
@@ -273,13 +285,16 @@ class Simulation(Ursina):
     def solve_beginners(self):
         """Solves the cube using the beginner's method"""
 
-        moves = solve_cube(self.internal_cube)
+        self.win_text_entity.text = "Stage: " + self.stages[self.stage_idx]
+
+        moves, self.markers = solve_cube(self.internal_cube)
         # break up moves with a 2 at the end into two moves
         move_list = []
         for move in moves:
             if move[-1] == "2":
                 move_list.append(move[:-1])
                 move_list.append(move[:-1])
+                self.markers = [x + 1 for x in self.markers]
             else:
                 move_list.append(move)
 
