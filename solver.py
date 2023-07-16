@@ -1,26 +1,20 @@
-from cube import Cube, Piece
+from cube import RubiksCube, Piece
 from data import str_sort
 
-c = Cube(3)
+c = RubiksCube()
 correct_pos_map = {str_sort(p.orientation): p.pos for p in c.pieces}
-correct_orientation_map = {
-    str_sort(p.orientation): p.orientation for p in c.pieces}
+correct_orientation_map = {str_sort(p.orientation): p.orientation for p in c.pieces}
 
-
-def solve_cube(internal_cube: Cube) -> list[str]:
-    raw_algorithm = solve_white_cross(internal_cube) + solve_first_layer(internal_cube) + solve_second_layer(internal_cube) + solve_yellow_cross(
-        internal_cube) + solve_yellow_edges(internal_cube) + solve_yellow_corner_position(internal_cube) + solve_yellow_corner_orientation(internal_cube)
+def solve_cube(internal_cube: RubiksCube) -> list[str]:
+    raw_algorithm = solve_white_cross(internal_cube) + solve_first_layer(internal_cube) + solve_second_layer(internal_cube) + solve_yellow_cross(internal_cube) + solve_yellow_edges(internal_cube) + solve_yellow_corner_position(internal_cube) + solve_yellow_corner_orientation(internal_cube)
     return optimize_algorithm(raw_algorithm)
 
-
-def solve_white_cross(internal_cube: Cube) -> list[str]:
+def solve_white_cross(internal_cube: RubiksCube) -> list[str]:
     move_list = []
 
     while True:
-        unsolved_white_edges = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "e" and (
-            piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
-        unsolved_white_edges.sort(
-            key=lambda piece: str_sort(piece.orientation))
+        unsolved_white_edges = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "e" and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
+        unsolved_white_edges.sort(key=lambda piece: str_sort(piece.orientation))
         if len(unsolved_white_edges) == 0:
             break
 
@@ -28,24 +22,19 @@ def solve_white_cross(internal_cube: Cube) -> list[str]:
         if piece.pos[2] == -1:
             piece = unsolved_white_edges[0]
             # twist the bottom layer until the white piece is directly below where it needs to go on the top layer
-            other_color = [
-                color for color in piece.orientation if color != "w" and color != "0"][0]
+            other_color = [color for color in piece.orientation if color != "w" and color != "0"][0]
             while other_color not in internal_cube.get_piece((piece.pos[0], piece.pos[1], 0)).orientation:
                 perform_internal_move(internal_cube, move_list, "D")
 
             # move it to the top layer
-            front_center_piece = internal_cube.get_piece(
-                (piece.pos[0], piece.pos[1], 0))
-            front_face_color = [
-                color for color in front_center_piece.orientation if color != "0"][0]
+            front_center_piece = internal_cube.get_piece((piece.pos[0], piece.pos[1], 0))
+            front_face_color = [color for color in front_center_piece.orientation if color != "0"][0]
 
             # if white is on the bottom of the piece
             if piece.orientation[5] == "w":
-                converted_algorithm = convert_algorithm(
-                    "F F", front_face_color, "w")
+                converted_algorithm = convert_algorithm("F F", front_face_color, "w")
             else:
-                converted_algorithm = convert_algorithm(
-                    "D R F' R'", front_face_color, "w")
+                converted_algorithm = convert_algorithm("D R F' R'", front_face_color, "w")
             move_list.extend(converted_algorithm)
             for move in converted_algorithm:
                 internal_cube.move(move)
@@ -60,9 +49,8 @@ def solve_white_cross(internal_cube: Cube) -> list[str]:
             else:
                 algorithm = "B D B'"
 
-            perform_internal_moves(
-                internal_cube, move_list, algorithm.split(" "))
-
+            perform_internal_moves(internal_cube, move_list, algorithm.split(" "))
+            
         elif piece.pos[2] == 1:
             # move it to the bottom layer
             if piece.pos[0] == 1 and piece.pos[1] == 0:
@@ -74,24 +62,20 @@ def solve_white_cross(internal_cube: Cube) -> list[str]:
             else:
                 algorithm = "B B"
 
-            perform_internal_moves(
-                internal_cube, move_list, algorithm.split(" "))
+            perform_internal_moves(internal_cube, move_list, algorithm.split(" "))
 
     # assert that the white cross is solved
     if not all([piece.pos == correct_pos_map[str_sort(piece.orientation)] and piece.orientation == correct_orientation_map[str_sort(piece.orientation)] for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "e"]):
         raise Exception("White cross not solved")
-
+            
     return move_list
 
-
-def solve_first_layer(internal_cube: Cube) -> list[str]:
+def solve_first_layer(internal_cube: RubiksCube) -> list[str]:
     move_list = []
 
     while True:
-        unsolved_white_corners = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "c" and (
-            piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
-        unsolved_white_corners.sort(
-            key=lambda piece: str_sort(piece.orientation))
+        unsolved_white_corners = [piece for piece in internal_cube.pieces if "w" in piece.orientation and piece.type == "c" and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
+        unsolved_white_corners.sort(key=lambda piece: str_sort(piece.orientation))
         if len(unsolved_white_corners) == 0:
             break
         piece = unsolved_white_corners[0]
@@ -102,81 +86,60 @@ def solve_first_layer(internal_cube: Cube) -> list[str]:
                 while piece.pos[0] != correct_pos[0] or piece.pos[1] != correct_pos[1]:
                     perform_internal_move(internal_cube, move_list, "D")
 
-                first_center_piece = internal_cube.get_piece(
-                    (piece.pos[0], 0, 0))
-                second_center_piece = internal_cube.get_piece(
-                    (0, piece.pos[1], 0))
+                first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
+                second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
 
-                first_outward_dir = [i for i in range(
-                    6) if first_center_piece.orientation[i] != "0"][0]
-                second_outward_dir = [i for i in range(
-                    6) if second_center_piece.orientation[i] != "0"][0]
+                first_outward_dir = [i for i in range(6) if first_center_piece.orientation[i] != "0"][0]
+                second_outward_dir = [i for i in range(6) if second_center_piece.orientation[i] != "0"][0]
                 first_color = first_center_piece.orientation[first_outward_dir]
                 second_color = second_center_piece.orientation[second_outward_dir]
                 if piece.orientation[first_outward_dir] == first_color:
                     if is_right_of(first_center_piece, second_center_piece):
-                        converted_algorithm = convert_algorithm(
-                            "L D L'", first_color, "w")
+                        converted_algorithm = convert_algorithm("L D L'", first_color, "w")
                     else:
-                        converted_algorithm = convert_algorithm(
-                            "R' D' R", first_color, "w")
+                        converted_algorithm = convert_algorithm("R' D' R", first_color, "w")
                 else:
                     if is_right_of(first_center_piece, second_center_piece):
-                        converted_algorithm = convert_algorithm(
-                            "R' D' R", second_color, "w")
+                        converted_algorithm = convert_algorithm("R' D' R", second_color, "w")
                     else:
-                        converted_algorithm = convert_algorithm(
-                            "L D L'", second_color, "w")
+                        converted_algorithm = convert_algorithm("L D L'", second_color, "w")
 
-                perform_internal_moves(
-                    internal_cube, move_list, converted_algorithm)
+                perform_internal_moves(internal_cube, move_list, converted_algorithm)
             else:
                 # twist the bottom layer until the white piece is directly below where it needs to go on the top layer
                 correct_pos = correct_pos_map[str_sort(piece.orientation)]
                 while piece.pos[0] != correct_pos[0] or piece.pos[1] != correct_pos[1]:
                     perform_internal_move(internal_cube, move_list, "D")
 
-                first_center_piece = internal_cube.get_piece(
-                    (piece.pos[0], 0, 0))
-                second_center_piece = internal_cube.get_piece(
-                    (0, piece.pos[1], 0))
+                first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
+                second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
 
-                first_outward_dir = [i for i in range(
-                    6) if first_center_piece.orientation[i] != "0"][0]
-                second_outward_dir = [i for i in range(
-                    6) if second_center_piece.orientation[i] != "0"][0]
+                first_outward_dir = [i for i in range(6) if first_center_piece.orientation[i] != "0"][0]
+                second_outward_dir = [i for i in range(6) if second_center_piece.orientation[i] != "0"][0]
                 first_color = first_center_piece.orientation[first_outward_dir]
                 second_color = second_center_piece.orientation[second_outward_dir]
 
                 if is_right_of(first_center_piece, second_center_piece):
-                    converted_algorithm = convert_algorithm(
-                        "R' D R", second_color, "w")
+                    converted_algorithm = convert_algorithm("R' D R", second_color, "w")
                 else:
-                    converted_algorithm = convert_algorithm(
-                        "R' D R", first_color, "w")
+                    converted_algorithm = convert_algorithm("R' D R", first_color, "w")
 
-                perform_internal_moves(
-                    internal_cube, move_list, converted_algorithm)
+                perform_internal_moves(internal_cube, move_list, converted_algorithm)
         else:
             first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
             second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
 
-            first_outward_dir = [i for i in range(
-                6) if first_center_piece.orientation[i] != "0"][0]
-            second_outward_dir = [i for i in range(
-                6) if second_center_piece.orientation[i] != "0"][0]
+            first_outward_dir = [i for i in range(6) if first_center_piece.orientation[i] != "0"][0]
+            second_outward_dir = [i for i in range(6) if second_center_piece.orientation[i] != "0"][0]
             first_color = first_center_piece.orientation[first_outward_dir]
             second_color = second_center_piece.orientation[second_outward_dir]
 
             if is_right_of(first_center_piece, second_center_piece):
-                converted_algorithm = convert_algorithm(
-                    "R' D R", second_color, "w")
+                converted_algorithm = convert_algorithm("R' D R", second_color, "w")
             else:
-                converted_algorithm = convert_algorithm(
-                    "R' D R", first_color, "w")
+                converted_algorithm = convert_algorithm("R' D R", first_color, "w")
 
-            perform_internal_moves(
-                internal_cube, move_list, converted_algorithm)
+            perform_internal_moves(internal_cube, move_list, converted_algorithm)
 
     # assert that the first layer is solved
     if not all([piece.pos == correct_pos_map[str_sort(piece.orientation)] and piece.orientation == correct_orientation_map[str_sort(piece.orientation)] for piece in internal_cube.pieces if "w" in piece.orientation]):
@@ -184,13 +147,11 @@ def solve_first_layer(internal_cube: Cube) -> list[str]:
 
     return move_list
 
-
-def solve_second_layer(internal_cube: Cube) -> list[str]:
+def solve_second_layer(internal_cube: RubiksCube) -> list[str]:
     move_list = []
 
     while True:
-        target_edges = [piece for piece in internal_cube.pieces if (piece.pos[2] == 0 or piece.pos[2] == -1) and piece.type == "e" and "y" not in piece.orientation and (
-            piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
+        target_edges = [piece for piece in internal_cube.pieces if (piece.pos[2] == 0 or piece.pos[2] == -1) and piece.type == "e" and "y" not in piece.orientation and (piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)])]
         target_edges.sort(key=lambda piece: str_sort(piece.orientation))
         if len(target_edges) == 0:
             break
@@ -198,62 +159,45 @@ def solve_second_layer(internal_cube: Cube) -> list[str]:
 
         if piece.pos[2] == -1:
             # get the color that is not facing down
-            other_color = [color for i, color in enumerate(
-                piece.orientation) if color != "0" and i != 5][0]
+            other_color = [color for i, color in enumerate(piece.orientation) if color != "0" and i != 5][0]
             # twist the bottom layer until the center piece with the other color is directly below the edge piece
             while other_color not in internal_cube.get_piece((piece.pos[0], piece.pos[1], 0)).orientation:
                 perform_internal_move(internal_cube, move_list, "D")
-
+            
             # get the current center piece
-            current_center_piece = internal_cube.get_piece(
-                (piece.pos[0], piece.pos[1], 0))
-            current_color = [
-                color for color in current_center_piece.orientation if color != "0"][0]
+            current_center_piece = internal_cube.get_piece((piece.pos[0], piece.pos[1], 0))
+            current_color = [color for color in current_center_piece.orientation if color != "0"][0]
 
             # get the center piece on both the faces left and right of the current face
-            first_center_piece = internal_cube.get_piece(
-                (*rotate_ccw(piece.pos[:2]), 0))
-            second_center_piece = internal_cube.get_piece(
-                (*rotate_cw(piece.pos[:2]), 0))
-            first_color = [
-                color for color in first_center_piece.orientation if color != "0"][0]
-            second_color = [
-                color for color in second_center_piece.orientation if color != "0"][0]
+            first_center_piece = internal_cube.get_piece((*rotate_ccw(piece.pos[:2]), 0))
+            second_center_piece = internal_cube.get_piece((*rotate_cw(piece.pos[:2]), 0))
+            first_color = [color for color in first_center_piece.orientation if color != "0"][0]
+            second_color = [color for color in second_center_piece.orientation if color != "0"][0]
 
             converted_algorithm = None
             if piece.orientation[5] == first_color:
                 if is_right_of(first_center_piece, current_center_piece):
-                    converted_algorithm = convert_algorithm(
-                        "U' L' U L U F U' F'", current_color, "y")
+                    converted_algorithm = convert_algorithm("U' L' U L U F U' F'", current_color, "y")
                 else:
-                    converted_algorithm = convert_algorithm(
-                        "U R U' R' U' F' U F", current_color, "y")
+                    converted_algorithm = convert_algorithm("U R U' R' U' F' U F", current_color, "y")
             elif piece.orientation[5] == second_color:
                 if is_right_of(second_center_piece, current_center_piece):
-                    converted_algorithm = convert_algorithm(
-                        "U' L' U L U F U' F'", current_color, "y")
+                    converted_algorithm = convert_algorithm("U' L' U L U F U' F'", current_color, "y")
                 else:
-                    converted_algorithm = convert_algorithm(
-                        "U R U' R' U' F' U F", current_color, "y")
+                    converted_algorithm = convert_algorithm("U R U' R' U' F' U F", current_color, "y")
 
-            perform_internal_moves(
-                internal_cube, move_list, converted_algorithm)
+            perform_internal_moves(internal_cube, move_list, converted_algorithm)
         else:
             first_center_piece = internal_cube.get_piece((piece.pos[0], 0, 0))
             second_center_piece = internal_cube.get_piece((0, piece.pos[1], 0))
-            first_color = [
-                color for color in first_center_piece.orientation if color != "0"][0]
-            second_color = [
-                color for color in second_center_piece.orientation if color != "0"][0]
+            first_color = [color for color in first_center_piece.orientation if color != "0"][0]
+            second_color = [color for color in second_center_piece.orientation if color != "0"][0]
             if is_right_of(first_center_piece, second_center_piece):
-                converted_algorithm = convert_algorithm(
-                    "U R U' R' U' F' U F", first_color, "y")
+                converted_algorithm = convert_algorithm("U R U' R' U' F' U F", first_color, "y")
             else:
-                converted_algorithm = convert_algorithm(
-                    "U' L' U L U F U' F'", first_color, "y")
+                converted_algorithm = convert_algorithm("U' L' U L U F U' F'", first_color, "y")
 
-            perform_internal_moves(
-                internal_cube, move_list, converted_algorithm)
+            perform_internal_moves(internal_cube, move_list, converted_algorithm)
 
     # assert that the second layer is solved
     if not all([piece.pos == correct_pos_map[str_sort(piece.orientation)] and piece.orientation == correct_orientation_map[str_sort(piece.orientation)] for piece in internal_cube.pieces if "y" not in piece.orientation]):
@@ -261,19 +205,17 @@ def solve_second_layer(internal_cube: Cube) -> list[str]:
 
     return move_list
 
-
-def solve_yellow_cross(internal_cube: Cube) -> list[str]:
+def solve_yellow_cross(internal_cube: RubiksCube) -> list[str]:
     move_list = []
     algorithm = None
-
+    
     # get all yellow edges
     top_edge = internal_cube.get_piece((0, 1, -1))
     right_edge = internal_cube.get_piece((-1, 0, -1))
     bottom_edge = internal_cube.get_piece((0, -1, -1))
     left_edge = internal_cube.get_piece((1, 0, -1))
     # get number of yellow edges facing down
-    num_facing_down = sum([1 for edge in [
-                          top_edge, right_edge, bottom_edge, left_edge] if edge.orientation[5] == "y"])
+    num_facing_down = sum([1 for edge in [top_edge, right_edge, bottom_edge, left_edge] if edge.orientation[5] == "y"])
 
     # yellow dot on top
     if num_facing_down == 0:
@@ -301,15 +243,13 @@ def solve_yellow_cross(internal_cube: Cube) -> list[str]:
 
     # assert that the yellow cross is solved
     f2l = [piece for piece in internal_cube.pieces if piece.pos[2] != -1]
-    bottom_layer_edges = [
-        piece for piece in internal_cube.pieces if piece.pos[2] == -1 and piece.type == "e"]
+    bottom_layer_edges = [piece for piece in internal_cube.pieces if piece.pos[2] == -1 and piece.type == "e"]
     if not all([piece.pos == correct_pos_map[str_sort(piece.orientation)] and piece.orientation == correct_orientation_map[str_sort(piece.orientation)] for piece in f2l] and [piece.orientation[5] == "y" for piece in bottom_layer_edges]):
         raise Exception("Yellow cross is not solved")
 
     return move_list
 
-
-def solve_yellow_edges(internal_cube: Cube) -> list[str]:
+def solve_yellow_edges(internal_cube: RubiksCube) -> list[str]:
     move_list = []
 
     for _ in range(4):
@@ -321,8 +261,7 @@ def solve_yellow_edges(internal_cube: Cube) -> list[str]:
         bottom_edge = internal_cube.get_piece((0, -1, -1))
         left_edge = internal_cube.get_piece((1, 0, -1))
 
-        is_correct = {"top": False, "right": False,
-                      "bottom": False, "left": False}
+        is_correct = { "top": False, "right": False, "bottom": False, "left": False }
         if correct_pos_map[str_sort(top_edge.orientation)] == top_edge.pos:
             is_correct["top"] = True
         if correct_pos_map[str_sort(right_edge.orientation)] == right_edge.pos:
@@ -351,21 +290,16 @@ def solve_yellow_edges(internal_cube: Cube) -> list[str]:
             else:
                 if is_correct["top"] and is_correct["bottom"]:
                     algorithm = "R U R' U R U U R' U'"
-                    converted_algorithm = convert_algorithm(
-                        algorithm, "r", "y")
-                    perform_internal_moves(
-                        internal_cube, move_list, converted_algorithm)
+                    converted_algorithm = convert_algorithm(algorithm, "r", "y")
+                    perform_internal_moves(internal_cube, move_list, converted_algorithm)
                 elif is_correct["right"] and is_correct["left"]:
                     algorithm = "R U R' U R U U R' U'"
-                    converted_algorithm = convert_algorithm(
-                        algorithm, "r", "y")
-                    perform_internal_moves(
-                        internal_cube, move_list, converted_algorithm)
+                    converted_algorithm = convert_algorithm(algorithm, "r", "y")
+                    perform_internal_moves(internal_cube, move_list, converted_algorithm)
             # perform algorithm
             algorithm = "R U R' U R U U R'"
             converted_algorithm = convert_algorithm(algorithm, "r", "y")
-            perform_internal_moves(
-                internal_cube, move_list, converted_algorithm)
+            perform_internal_moves(internal_cube, move_list, converted_algorithm)
 
             # get all yellow edges
             top_edge = internal_cube.get_piece((0, 1, -1))
@@ -387,28 +321,24 @@ def solve_yellow_edges(internal_cube: Cube) -> list[str]:
                 continue
             break
         else:
-            raise Exception("Invalid cube state")
+            # raise Exception("Invalid cube state")
             pass
 
     f2l = [piece for piece in internal_cube.pieces if piece.pos[2] != -1]
-    bottom_layer_edges = [
-        piece for piece in internal_cube.pieces if piece.pos[2] == -1 and piece.type == "e"]
+    bottom_layer_edges = [piece for piece in internal_cube.pieces if piece.pos[2] == -1 and piece.type == "e"]
 
     if not all([piece.pos == correct_pos_map[str_sort(piece.orientation)] and piece.orientation == correct_orientation_map[str_sort(piece.orientation)] for piece in f2l + bottom_layer_edges]):
         raise Exception("Yellow edges not in correct position")
 
     return move_list
 
-
-def solve_yellow_corner_position(internal_cube: Cube) -> list[str]:
+def solve_yellow_corner_position(internal_cube: RubiksCube) -> list[str]:
     move_list = []
 
     # get all yellow corners, order is top left (r as front and y as top) and goes clockwise
-    corners = [internal_cube.get_piece((1, 1, -1)), internal_cube.get_piece(
-        (-1, 1, -1)), internal_cube.get_piece((-1, -1, -1)), internal_cube.get_piece((1, -1, -1))]
+    corners = [internal_cube.get_piece((1, 1, -1)), internal_cube.get_piece((-1, 1, -1)), internal_cube.get_piece((-1, -1, -1)), internal_cube.get_piece((1, -1, -1))]
     # get number of yellow corners in correct position
-    is_correct = [corner.pos == correct_pos_map[str_sort(
-        corner.orientation)] for corner in corners]
+    is_correct = [corner.pos == correct_pos_map[str_sort(corner.orientation)] for corner in corners]
     num_correct = sum([1 for correct in is_correct if correct])
     if num_correct == 4:
         return move_list
@@ -428,13 +358,10 @@ def solve_yellow_corner_position(internal_cube: Cube) -> list[str]:
                 converted_algorithm = convert_algorithm(algorithm, "r", "y")
             else:
                 converted_algorithm = convert_algorithm(algorithm, "b", "y")
-            perform_internal_moves(
-                internal_cube, move_list, converted_algorithm)
+            perform_internal_moves(internal_cube, move_list, converted_algorithm)
 
-            corners = [internal_cube.get_piece((1, 1, -1)), internal_cube.get_piece(
-                (-1, 1, -1)), internal_cube.get_piece((-1, -1, -1)), internal_cube.get_piece((1, -1, -1))]
-            is_correct = [corner.pos == correct_pos_map[str_sort(
-                corner.orientation)] for corner in corners]
+            corners = [internal_cube.get_piece((1, 1, -1)), internal_cube.get_piece((-1, 1, -1)), internal_cube.get_piece((-1, -1, -1)), internal_cube.get_piece((1, -1, -1))]
+            is_correct = [corner.pos == correct_pos_map[str_sort(corner.orientation)] for corner in corners]
             num_correct = sum([1 for correct in is_correct if correct])
 
             num_loops += 1
@@ -447,8 +374,7 @@ def solve_yellow_corner_position(internal_cube: Cube) -> list[str]:
 
     return move_list
 
-
-def solve_yellow_corner_orientation(internal_cube: Cube) -> list[str]:
+def solve_yellow_corner_orientation(internal_cube: RubiksCube) -> list[str]:
     move_list = []
     outer_num_loops = 0
     while not all([piece.orientation[5] == "y" for piece in internal_cube.pieces if piece.type == "c" and "y" in piece.orientation]):
@@ -462,8 +388,7 @@ def solve_yellow_corner_orientation(internal_cube: Cube) -> list[str]:
                 raise Exception("Invalid cube state")
             algorithm = "R' D' R D"
             converted_algorithm = convert_algorithm(algorithm, "r", "y")
-            perform_internal_moves(
-                internal_cube, move_list, converted_algorithm)
+            perform_internal_moves(internal_cube, move_list, converted_algorithm)
             inner_num_loops += 1
         internal_cube.move("D'")
         move_list.append("D'")
@@ -481,21 +406,17 @@ def solve_yellow_corner_orientation(internal_cube: Cube) -> list[str]:
 
     return move_list
 
-
-def perform_internal_move(internal_cube: Cube, move_list: list[str], move: str):
+def perform_internal_move(internal_cube: RubiksCube, move_list: list[str], move: str):
     internal_cube.move(move)
     move_list.append(move)
 
-
-def perform_internal_moves(internal_cube: Cube, move_list: list[str], moves: list[str]):
+def perform_internal_moves(internal_cube: RubiksCube, move_list: list[str], moves: list[str]):
     for move in moves:
         internal_cube.move(move)
     move_list.extend(moves)
 
-
 def optimize_algorithm(algorithm: list[str]) -> list[str]:
     # three subsequent moves in the same direction can be replaced with a single move in the opposite direction
-
     first_iteration = []
     i = 0
     while i < len(algorithm):
@@ -510,7 +431,7 @@ def optimize_algorithm(algorithm: list[str]) -> list[str]:
             i += 1
 
     # a move followed by its inverse can be removed
-    second_iteration = []
+    second_iteration = [] 
     i = 0
     while i < len(first_iteration):
         if i < len(first_iteration) - 1 and first_iteration[i] == inverse(first_iteration[i + 1]):
@@ -519,42 +440,55 @@ def optimize_algorithm(algorithm: list[str]) -> list[str]:
             second_iteration.append(first_iteration[i])
             i += 1
 
-    print("Reduced algorithm from", len(algorithm),
-          "moves to", len(second_iteration), "moves")
+    print("Reduced algorithm from", len(algorithm), "moves to", len(second_iteration), "moves")
 
     return second_iteration
 
-
 def inverse(move: str) -> str:
+    """Returns the inverse of the given move
+
+    Args:
+        move (str): The move to invert
+
+    Returns:
+        str: The inverse of the given move
+    """
     if "'" in move:
         return move[:-1]
     else:
         return move + "'"
 
-
-def is_solved(internal_cube: Cube):
+def is_solved(internal_cube: RubiksCube):
     for piece in internal_cube.pieces:
         if piece.pos != correct_pos_map[str_sort(piece.orientation)] or piece.orientation != correct_orientation_map[str_sort(piece.orientation)]:
             return False
     return True
 
-
 def rotate_ccw(vec: tuple[int, int]) -> tuple[int, int]:
     return (-vec[1], vec[0])
-
 
 def rotate_cw(vec: tuple[int, int]) -> tuple[int, int]:
     return (vec[1], -vec[0])
 
-
 def is_right_of(piece1: Piece, piece2: Piece) -> bool:
-    # determines is piece1 to the right of piece2 (counter-clockwise)
     # if we can rotate piece2 x and y coordinates 90 degrees counter-clockwise and get piece1, then piece1 is to the right of piece2
     if rotate_ccw((piece2.pos[0], piece2.pos[1])) == (piece1.pos[0], piece1.pos[1]):
         return True
 
-
 def convert_algorithm(algorithm: str, front_face_color: str, top_face_color: str) -> list[str]:
+    """Converts the given algorithm to the correct orientation
+
+    Args:
+        algorithm (str): The algorithm to convert
+        front_face_color (str): The color of the front face when the algorithm is performed
+        top_face_color (str): The color of the top face when the algorithm is performed
+
+    Raises:
+        Exception: If the front and top face colors are invalid
+
+    Returns:
+        list[str]: A list of moves that is the converted algorithm
+    """
     move_map = None
 
     # if red is front and white is top, then the algorithm is already in the correct orientation
@@ -632,7 +566,6 @@ def convert_algorithm(algorithm: str, front_face_color: str, top_face_color: str
     else:
         raise Exception("Invalid front and top face colors")
 
-
 def fill_move_map(move_map: dict[str, str]) -> dict[str, str]:
     # for each move in the move map, fill in the inverse move
     new_move_map = move_map.copy()
@@ -640,20 +573,19 @@ def fill_move_map(move_map: dict[str, str]) -> dict[str, str]:
         new_move_map[move + "'"] = move_map[move] + "'"
     return new_move_map
 
-
 if __name__ == "__main__":
-    c = Cube(3)
-    c.scramble()
+    c = RubiksCube()
+    c.scramble() 
 
     moves = solve_cube(c)
 
     # red center should be right of green center
-    print(is_right_of(c.get_piece((0, -1, 0)), c.get_piece((-1, 0, 0))))
+    print(is_right_of(c.get_piece((0,-1,0)), c.get_piece((-1,0,0))))
 
     # test against 100 random scrambles
     for _ in range(100):
         c.scramble(num_moves=500)
         try:
-            moves = solve_cube(c)
+            moves = solve_cube(c) 
         except Exception as e:
             raise e
