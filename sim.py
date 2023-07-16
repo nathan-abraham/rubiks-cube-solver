@@ -43,16 +43,17 @@ class Simulation(Ursina):
 
         self.generate_cube()
 
-        self.print_cube_button = Button(
-            text='print cube', color=color.azure, position=(.7, .1), on_click=self.internal_cube.print_cube)
-        self.print_cube_button.fit_to_text()
+        # Commented buttons are for debugging purposes
+        # self.print_cube_button = Button(
+        #     text='print cube', color=color.azure, position=(.7, .1), on_click=self.internal_cube.print_cube)
+        # self.print_cube_button.fit_to_text()
 
-        self.check_solved_button = Button(
-            text='check solved', color=color.azure, position=(.7, 0), on_click=self.check_for_win)
-        self.check_solved_button.fit_to_text()
+        # self.check_solved_button = Button(
+        #     text='check solved', color=color.azure, position=(.7, 0), on_click=self.check_for_win)
+        # self.check_solved_button.fit_to_text()
 
         self.randomize_button = Button(
-            text='randomize', color=color.azure, position=(.7, -.1), on_click=self.randomize_cube)
+            text='randomize', color=color.brown, position=(.7, -.1), on_click=self.randomize_cube)
         self.randomize_button.fit_to_text()
 
         self.solve_beginners_button = Button(
@@ -60,11 +61,11 @@ class Simulation(Ursina):
         self.solve_beginners_button.fit_to_text()
 
         self.solve_button = Button(
-            text='solve (kociemba)', color=color.azure, position=(.7, -.3), on_click=self.solve_kociemba)
+            text='solve (kociemba)', color=color.olive, position=(.7, -.3), on_click=self.solve_kociemba)
         self.solve_button.fit_to_text()
 
         self.reset_button = Button(
-            text='reset', color=color.azure, position=(.7, -.4), on_click=self.reset_cube)
+            text='reset', color=color.salmon, position=(.7, -.4), on_click=self.reset_cube)
         self.reset_button.fit_to_text()
 
         self.markers = None
@@ -72,6 +73,10 @@ class Simulation(Ursina):
 
         window.color = color._16
         EditorCamera()
+
+        # display instructions at the top left
+        Text(text='Controls:\nRight click + drag to rotate cube\n\nR, U, B, L, D, F for CW rotations\nShift + R, U, B, L, D, F for CCW rotations',
+                position=(-.7, .4), origin=(-.5, 0), scale=0.8)
 
     def generate_cube(self):
         # make a model with a separate color on each face
@@ -254,11 +259,12 @@ class Simulation(Ursina):
         self.perform_move(move, move_speed,
                           change_internal_cube=change_internal_cube)
 
-        for i in range(len(self.markers)):
-            if self.markers[i] == index:
-                self.stage_idx += 1
-                self.win_text_entity.text = "Stage: " + self.stages[self.stage_idx]
-                break
+        if self.markers is not None:
+            for i in range(len(self.markers)):
+                if self.markers[i] == index:
+                    self.stage_idx += 1
+                    self.win_text_entity.text = "Stage: " + self.stages[self.stage_idx]
+                    break
 
         invoke(self.perform_moves, move_list, index+1, move_speed,
                change_internal_cube=False, delay=.5*move_speed)
