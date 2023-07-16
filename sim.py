@@ -110,6 +110,8 @@ class Simulation(Ursina):
         Args:
             key (_type_): The key that was pressed
         """
+        if self.controller.ignore_input:
+            return
         if held_keys["shift"]:
             self.reverse_dir = True
         else:
@@ -194,6 +196,7 @@ class Simulation(Ursina):
 
         if self.internal_cube.check_solved():
             print("SOLVED")
+            self.controller.ignore_input = False
             self.win_text_entity.text = 'SOLVED!'
             self.win_text_entity.appear()
         else:
@@ -272,6 +275,7 @@ class Simulation(Ursina):
     def solve_kociemba(self):
         """Solves the cube using the kociemba library"""
 
+        self.controller.ignore_input = True
         moves = kociemba.solve(
             self.internal_cube.to_string_notation()).split(" ")
         # break up moves with a 2 at the end into two moves
@@ -291,6 +295,7 @@ class Simulation(Ursina):
     def solve_beginners(self):
         """Solves the cube using the beginner's method"""
 
+        self.controller.ignore_input = True
         self.win_text_entity.text = "Stage: " + self.stages[self.stage_idx]
 
         moves, self.markers = solve_cube(self.internal_cube)
