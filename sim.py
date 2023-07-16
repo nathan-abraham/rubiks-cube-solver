@@ -72,7 +72,7 @@ class Simulation(Ursina):
         self.stage_idx = 0
 
         window.color = color._16
-        EditorCamera()
+        EditorCamera(rotation=(20, -45, 0))
 
         # display instructions at the top left
         Text(text='Controls:\nRight click + drag to rotate cube\n\nR, U, B, L, D, F for CW rotations\nShift + R, U, B, L, D, F for CCW rotations',
